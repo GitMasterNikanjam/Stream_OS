@@ -273,6 +273,199 @@ bool endsWith(const std::string& str, const std::string suffix)
 //     return valueType;
 // }
 
+// ######################################################################################################
+// Stream Class:
+
+Stream::Stream(std::deque<char>* txBuffer, uint32_t txBufferSize, std::deque<char>* rxBuffer, uint32_t rxBufferSize)
+{
+    setTxBuffer(txBuffer, txBufferSize);
+    setRxBuffer(rxBuffer, rxBufferSize);
+}
+
+Stream::~Stream()
+{
+
+}
+
+void Stream::setTxBuffer(std::deque<char>* txBuffer, uint32_t txBufferSize)
+{
+    _txBufferSize = txBufferSize;
+    _txBuffer = txBuffer;
+}
+
+void Stream::setRxBuffer(std::deque<char>* rxBuffer, uint32_t rxBufferSize)
+{
+    _rxBufferSize = rxBufferSize;
+    _rxBuffer = rxBuffer;
+}
+
+void Stream::setTxBufferSize(const uint32_t &size)
+{
+    _txBufferSize = size;
+}
+
+void Stream::setRxBufferSize(const uint32_t &size)
+{
+    _rxBufferSize = size;
+}
+
+void Stream::removeFrontRxBuffer(size_t num)
+{
+    for(size_t i = 0; i < num ; i++)
+    {
+        if(_rxBuffer->empty())
+            return;
+
+        _rxBuffer->pop_front();
+    }
+}
+
+void Stream::removeFrontTxBuffer(size_t size)
+{
+    for(size_t i = 0; i < size ; i++)
+    {
+        if(_txBuffer->empty())
+            return;
+
+        _txBuffer->pop_front();
+    }
+}
+
+void Stream::removeAllRxBuffer(void)
+{
+    _rxBuffer->clear();
+}
+
+void Stream::removeAllTxBuffer(void)
+{
+    _txBuffer->clear();
+}
+
+std::string Stream::popFrontRxBuffer(size_t size)
+{
+    std::string data;
+
+    for(size_t i = 0; i < size ; i++)
+    {
+        if(_rxBuffer->empty())
+            return data;
+
+        data.push_back(_rxBuffer->front());
+        _rxBuffer->pop_front();
+    }
+
+    return data;
+}
+
+std::string Stream::popAllRxBuffer(void)
+{
+    std::string data(_rxBuffer->begin(), _rxBuffer->end());
+    _rxBuffer->clear();
+
+    return data;
+}
+
+void Stream::pushBackRxBuffer(const char* data, size_t size)
+{
+    // empty space size of rx buffer that needed for new data. Hint:It can be negative value.
+    int64_t emptySize;
+
+    emptySize = (int64_t)(_rxBuffer->size() + size) - (int64_t)_rxBufferSize;
+
+    if(emptySize > 0)
+    {
+        removeFrontRxBuffer(emptySize);
+    }
+
+    // Append the char array to the deque
+    _rxBuffer->insert(_rxBuffer->end(), data, data + size);
+}
+
+void Stream::pushBackRxBuffer(const std::string* data)
+{
+    pushBackRxBuffer(data->c_str(), data->size());
+}
+
+void Stream::pushBackTxBuffer(const char* data, size_t size)
+{
+    // empty space size of tx buffer that needed for new data. Hint:It can be negative value.
+    int64_t emptySize;
+
+    emptySize = (int64_t)(_txBuffer->size() + size) - (int64_t)_txBufferSize;
+
+    if(emptySize > 0)
+    {
+        removeFrontTxBuffer(emptySize);
+    }
+
+    // Append the char array to the deque
+    _txBuffer->insert(_txBuffer->end(), data, data + size);
+
+}
+
+void Stream::pushBackTxBuffer(const std::string* data)
+{
+    pushBackTxBuffer(data->c_str(), data->size());
+}
+
+void Stream::pushBackTxBuffer(const std::string& data)
+{
+    pushBackTxBuffer(data.c_str(), data.size());
+}
+
+void Stream::receiveData(const char &data, size_t size)
+{
+    // empty space size of rx buffer.
+    int64_t emptySize;
+
+    emptySize = (int64_t)(_rxBuffer->size() + size) - (int64_t)_rxBufferSize;
+
+    if(emptySize > 0)
+    {
+        removeFrontRxBuffer(emptySize);
+    }
+
+    for(size_t i=0; i < size; i++)
+    {
+        _rxBuffer->push_back(data+i); 
+    }
+}
+
+void Stream::receiveData(const std::string &data)
+{
+    // empty space size of rx buffer.
+    int64_t emptySize;
+
+    emptySize = (int64_t)(_rxBuffer->size() + data.size()) - (int64_t)_rxBufferSize;
+
+    if(emptySize > 0)
+    {
+        removeFrontRxBuffer(emptySize);
+    }
+
+    for(size_t i=0; i < data.size(); i++)
+    {
+        _rxBuffer->push_back(data[i]); 
+    }
+}
+
+void Stream::receiveData(const std::deque<char> &data)
+{
+    // empty space size of rx buffer.
+    int64_t emptySize;
+
+    emptySize = (int64_t)(_rxBuffer->size() + data.size()) - (int64_t)_rxBufferSize;
+
+    if(emptySize > 0)
+    {
+        removeFrontRxBuffer(emptySize);
+    }
+
+    for(size_t i=0; i < data.size(); i++)
+    {
+        _rxBuffer->push_back(data[i]); 
+    }
+}
 
 
 
